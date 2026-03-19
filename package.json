@@ -1,0 +1,35 @@
+{
+  "name": "productlane-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for the Productlane customer support platform — threads, companies, contacts, issues, and projects",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/our-technology/productlane-mcp-server"
+  },
+  "keywords": [
+    "mcp",
+    "productlane",
+    "customer-support",
+    "model-context-protocol"
+  ],
+  "bin": {
+    "productlane-mcp-server": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
