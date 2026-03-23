@@ -14,7 +14,7 @@
  *   PRODUCTLANE_WORKSPACE_ID  — Workspace UUID from Productlane Settings
  *
  * Usage:
- *   PRODUCTLANE_API_KEY=pl_... PRODUCTLANE_WORKSPACE_ID=... npx @ourtechnology/productlane-mcp-server
+ *   PRODUCTLANE_API_KEY=pl_... PRODUCTLANE_WORKSPACE_ID=... npx productlane-mcp-server
  */
 
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
