@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/our-technology/productlane-mcp-server"
+    "url": "git+https://github.com/our-technology/productlane-mcp-server.git"
   },
   "keywords": [
     "mcp",
@@ -14,7 +14,7 @@
     "model-context-protocol"
   ],
   "bin": {
-    "productlane-mcp-server": "./src/index.js"
+    "productlane-mcp-server": "src/index.js"
   },
   "files": [
     "src",
