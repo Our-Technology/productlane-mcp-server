@@ -6,8 +6,9 @@
  * A Model Context Protocol (MCP) server that provides AI assistants with
  * access to the Productlane customer support platform.
  *
- * Supports threads, companies, contacts, issues, projects, and changelogs
- * via the Productlane REST API (https://productlane.mintlify.dev/docs/api).
+ * Supports threads, companies, contacts, issues, projects, changelogs,
+ * docs, upvotes, and user management via the Productlane REST API
+ * (https://productlane.mintlify.dev/docs/api).
  *
  * Required env:
  *   PRODUCTLANE_API_KEY       — API key from Productlane Settings → API
@@ -353,6 +354,21 @@ server.tool(
 );
 
 server.tool(
+  "delete_company",
+  "Delete a company from Productlane.",
+  {
+    id: z.string().describe("Company ID"),
+  },
+  async ({ id }) => {
+    try {
+      return ok(await apiDelete(`/companies/${id}`));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
   "get_linear_options",
   "Get available Linear customer statuses and tiers configured in Productlane.",
   {},
@@ -554,6 +570,24 @@ server.tool(
 );
 
 server.tool(
+  "get_changelog",
+  "Get a specific changelog entry by ID.",
+  {
+    id: z.string().describe("Changelog entry ID"),
+    language: z.string().optional().describe("Language code"),
+  },
+  async ({ id, language }) => {
+    try {
+      return ok(
+        await apiGet(`/changelogs/${WORKSPACE_ID}/${id}`, { language })
+      );
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
   "create_changelog",
   "Create a new changelog entry.",
   {
@@ -571,6 +605,47 @@ server.tool(
       return ok(
         await apiPost("/changelogs", { title, content, published, date, language })
       );
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "update_changelog",
+  "Update an existing changelog entry.",
+  {
+    id: z.string().describe("Changelog entry ID"),
+    title: z.string().optional().describe("Updated title"),
+    content: z.string().optional().describe("Updated content (markdown supported)"),
+    date: z.string().optional().describe("Updated date (ISO format)"),
+    published: z.boolean().optional().describe("Publish or unpublish"),
+    archived: z.boolean().optional().describe("Archive or unarchive"),
+  },
+  async ({ id, title, content, date, published, archived }) => {
+    try {
+      const body = {};
+      if (title) body.title = title;
+      if (content) body.content = content;
+      if (date) body.date = date;
+      if (published !== undefined) body.published = published;
+      if (archived !== undefined) body.archived = archived;
+      return ok(await apiPatch(`/changelogs/${id}`, body));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "delete_changelog",
+  "Delete a changelog entry.",
+  {
+    id: z.string().describe("Changelog entry ID"),
+  },
+  async ({ id }) => {
+    try {
+      return ok(await apiDelete(`/changelogs/${id}`));
     } catch (e) {
       return err(e);
     }
@@ -616,6 +691,206 @@ server.tool(
   }
 );
 
+server.tool(
+  "create_article",
+  "Create a new documentation article.",
+  {
+    title: z.string().describe("Article title"),
+    content: z.string().describe("Article body (markdown supported)"),
+    groupId: z.string().describe("Documentation group ID to place the article in"),
+    summary: z.string().optional().describe("Brief description of the article"),
+    published: z
+      .boolean()
+      .optional()
+      .describe("Publish immediately (default false)"),
+    language: z.string().optional().describe("Article language code"),
+  },
+  async ({ title, content, groupId, summary, published, language }) => {
+    try {
+      return ok(
+        await apiPost("/docs/articles", {
+          title, content, groupId, summary, published, language,
+        })
+      );
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "update_article",
+  "Update an existing documentation article.",
+  {
+    id: z.string().describe("Article ID"),
+    title: z.string().optional().describe("Updated title"),
+    content: z.string().optional().describe("Updated body (markdown supported)"),
+    summary: z.string().optional().describe("Updated summary"),
+    published: z.boolean().optional().describe("Publish or unpublish"),
+    archived: z.boolean().optional().describe("Archive or unarchive"),
+    showOnHomePage: z
+      .boolean()
+      .optional()
+      .describe("Show on help center home page"),
+  },
+  async ({ id, title, content, summary, published, archived, showOnHomePage }) => {
+    try {
+      const body = {};
+      if (title) body.title = title;
+      if (content) body.content = content;
+      if (summary) body.summary = summary;
+      if (published !== undefined) body.published = published;
+      if (archived !== undefined) body.archived = archived;
+      if (showOnHomePage !== undefined) body.showOnHomePage = showOnHomePage;
+      return ok(await apiPatch(`/docs/articles/${id}`, body));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "delete_article",
+  "Delete a documentation article.",
+  {
+    id: z.string().describe("Article ID"),
+  },
+  async ({ id }) => {
+    try {
+      return ok(await apiDelete(`/docs/articles/${id}`));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "create_doc_group",
+  "Create a new documentation group to organize articles.",
+  {
+    name: z.string().describe("Group name"),
+  },
+  async ({ name }) => {
+    try {
+      return ok(await apiPost("/docs/groups", { name }));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "update_doc_group",
+  "Update a documentation group's name or order.",
+  {
+    id: z.string().describe("Group ID"),
+    name: z.string().optional().describe("Updated group name"),
+    order: z.number().optional().describe("Display order"),
+  },
+  async ({ id, name, order }) => {
+    try {
+      const body = {};
+      if (name) body.name = name;
+      if (order !== undefined) body.order = order;
+      return ok(await apiPatch(`/docs/groups/${id}`, body));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "delete_doc_group",
+  "Delete a documentation group. Articles in the group will be ungrouped.",
+  {
+    id: z.string().describe("Group ID"),
+  },
+  async ({ id }) => {
+    try {
+      return ok(await apiDelete(`/docs/groups/${id}`));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "move_articles_to_group",
+  "Move one or more documentation articles to a group, or ungroup them by passing null for groupId.",
+  {
+    articleIds: z
+      .array(z.string())
+      .min(1)
+      .describe("Array of article IDs to move"),
+    groupId: z
+      .string()
+      .nullable()
+      .describe("Target group ID, or null to ungroup"),
+  },
+  async ({ articleIds, groupId }) => {
+    try {
+      return ok(
+        await apiPost("/docs/groups/move-articles", { articleIds, groupId })
+      );
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+// ==================== UPVOTES (Portal) ====================
+
+server.tool(
+  "list_upvotes",
+  "List upvotes for portal projects or issues.",
+  {
+    projectId: z.string().optional().describe("Filter by project ID"),
+    issueId: z.string().optional().describe("Filter by issue ID"),
+  },
+  async ({ projectId, issueId }) => {
+    try {
+      return ok(await apiGet("/portal/upvotes", { projectId, issueId }));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "create_upvote",
+  "Create an upvote on a portal project or issue on behalf of a contact.",
+  {
+    email: z.string().describe("Email address of the voter"),
+    projectId: z.string().optional().describe("Project ID to upvote"),
+    issueId: z.string().optional().describe("Issue ID to upvote"),
+  },
+  async ({ email, projectId, issueId }) => {
+    try {
+      const body = { email };
+      if (projectId) body.projectId = projectId;
+      if (issueId) body.issueId = issueId;
+      return ok(await apiPost("/portal/upvotes", body));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "delete_upvote",
+  "Remove an upvote from a portal project or issue.",
+  {
+    id: z.string().describe("Upvote ID"),
+  },
+  async ({ id }) => {
+    try {
+      return ok(await apiDelete(`/portal/upvotes/${id}`));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
 // ==================== WORKSPACE ====================
 
 server.tool(
@@ -640,6 +915,43 @@ server.tool(
   async () => {
     try {
       return ok(await apiGet("/users/members"));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "invite_user",
+  "Invite a new user to the Productlane workspace. Only admins can invite users.",
+  {
+    email: z.string().describe("Email address to invite"),
+    name: z.string().describe("Display name for the invited user"),
+    role: z
+      .enum(["ADMIN", "USER", "VIEWER"])
+      .describe("Role to assign: ADMIN, USER, or VIEWER"),
+  },
+  async ({ email, name, role }) => {
+    try {
+      return ok(await apiPost("/users/invite", { email, name, role }));
+    } catch (e) {
+      return err(e);
+    }
+  }
+);
+
+server.tool(
+  "update_user_role",
+  "Update a workspace member's role. Only admins can change roles. Cannot demote the last admin.",
+  {
+    membershipId: z.string().describe("Membership ID of the user to update"),
+    role: z
+      .enum(["ADMIN", "USER", "VIEWER"])
+      .describe("New role: ADMIN, USER, or VIEWER"),
+  },
+  async ({ membershipId, role }) => {
+    try {
+      return ok(await apiPatch("/users/role", { membershipId, role }));
     } catch (e) {
       return err(e);
     }

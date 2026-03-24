@@ -1,7 +1,7 @@
 {
   "name": "productlane-mcp-server",
-  "version": "0.1.0",
-  "description": "MCP server for the Productlane customer support platform — threads, companies, contacts, issues, and projects",
+  "version": "0.2.0",
+  "description": "MCP server for the Productlane customer support platform — threads, companies, contacts, issues, projects, changelogs, docs, upvotes, and user management",
   "license": "MIT",
   "repository": {
     "type": "git",
